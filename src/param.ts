@@ -34,7 +34,9 @@ export class CGParameterNode extends CGCodeNode {
     if (
       this.module.interfaceInstances[
         CGUtils.tsToDartType(this.parameter.type)
-      ] !== undefined
+      ] !== undefined ||
+      this.module.enumInstances[CGUtils.tsToDartType(this.parameter.type)] !==
+        undefined
     ) {
       return `${this.nameOfNode()}${this.isOptionalType() ? "?" : ""}.toJson()`;
     } else {

@@ -1,15 +1,19 @@
 import {
+  isFunctionDeclaration,
   isInterfaceDeclaration,
   isModuleBlock,
   isTypeAliasDeclaration,
   ModuleDeclaration,
 } from "typescript";
+import { CGEnumNode } from "./enum";
+import { CGFunctionNode } from "./function";
 import { CGInterfaceNode } from "./interface";
 import { CGCodeNode } from "./node";
 import { CGTypeAliasNode } from "./type_alias";
 
 export class CGModuleNode extends CGCodeNode {
   public interfaceInstances: { [key: string]: CGInterfaceNode } = {};
+  public enumInstances: { [key: string]: CGEnumNode } = {};
   public codeNodes: CGCodeNode[] = [];
 
   constructor(readonly moduleDeclaration: ModuleDeclaration) {
@@ -31,7 +35,15 @@ export class CGModuleNode extends CGCodeNode {
             this.codeNodes.push(instance);
           }
         } else if (isTypeAliasDeclaration(childNode)) {
-          this.codeNodes.push(new CGTypeAliasNode(childNode));
+          if (CGEnumNode.isEnum(childNode)) {
+            const instance = new CGEnumNode(childNode);
+            this.enumInstances[instance.nameOfNode()] = instance;
+            this.codeNodes.push(instance);
+          } else {
+            this.codeNodes.push(new CGTypeAliasNode(childNode));
+          }
+        } else if (isFunctionDeclaration(childNode)) {
+          this.codeNodes.push(new CGFunctionNode(childNode, this));
         }
       });
     }

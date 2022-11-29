@@ -25,7 +25,9 @@ class CGParameterNode extends node_1.CGCodeNode {
         return utils_1.CGUtils.instanceName(this.parameter.name);
     }
     codeOfCallArgs() {
-        if (this.module.interfaceInstances[utils_1.CGUtils.tsToDartType(this.parameter.type)] !== undefined) {
+        if (this.module.interfaceInstances[utils_1.CGUtils.tsToDartType(this.parameter.type)] !== undefined ||
+            this.module.enumInstances[utils_1.CGUtils.tsToDartType(this.parameter.type)] !==
+                undefined) {
             return `${this.nameOfNode()}${this.isOptionalType() ? "?" : ""}.toJson()`;
         }
         else {

@@ -4,6 +4,8 @@ exports.CGUtils = void 0;
 const typescript_1 = require("typescript");
 class CGUtils {
     static instanceName(node) {
+        if (!node)
+            return "";
         if ((0, typescript_1.isIdentifier)(node)) {
             return node.escapedText.toString();
         }

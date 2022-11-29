@@ -8,10 +8,12 @@ import {
   isArrayTypeNode,
   TypeParameterDeclaration,
   isStringLiteral,
+  Identifier,
 } from "typescript";
 
 export class CGUtils {
-  static instanceName(node: Node): string {
+  static instanceName(node?: Node): string {
+    if (!node) return "";
     if (isIdentifier(node)) {
       return node.escapedText.toString();
     } else if (isStringLiteral(node)) {
