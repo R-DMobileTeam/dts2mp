@@ -37,10 +37,11 @@ class CGInterfaceNode extends node_1.CGCodeNode {
                 this.interfaceDeclaration.typeParameters.length) {
                 generics = this.interfaceDeclaration.typeParameters.map((it) => utils_1.CGUtils.instanceName(it.name));
             }
-            if ((0, typescript_1.isPropertySignature)(childNode)) {
+            if ((0, typescript_1.isPropertySignature)(childNode) || (0, typescript_1.isPropertyDeclaration)(childNode)) {
                 this.properties.push(new property_1.CGPropertyNode(childNode, generics, this.module));
             }
-            else if ((0, typescript_1.isMethodSignature)(childNode)) {
+            else if ((0, typescript_1.isMethodSignature)(childNode) ||
+                (0, typescript_1.isMethodDeclaration)(childNode)) {
                 this.methods.push(new method_1.CGMethodNode(childNode, generics, this.module));
             }
         });

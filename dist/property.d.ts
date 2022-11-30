@@ -1,11 +1,11 @@
-import { PropertySignature } from "typescript";
+import { PropertySignature, PropertyDeclaration } from "typescript";
 import { CGModuleNode } from "./module";
 import { CGCodeNode } from "./node";
 export declare class CGPropertyNode extends CGCodeNode {
-    readonly propertySignature: PropertySignature;
+    readonly propertySignature: PropertySignature | PropertyDeclaration;
     readonly genericTypes: string[];
     readonly module: CGModuleNode;
-    constructor(propertySignature: PropertySignature, genericTypes: string[], module: CGModuleNode);
+    constructor(propertySignature: PropertySignature | PropertyDeclaration, genericTypes: string[], module: CGModuleNode);
     isOptional(): boolean;
     isClassType(): boolean;
     nameOfNode(): string;

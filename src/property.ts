@@ -3,6 +3,7 @@ import {
   isOptionalTypeNode,
   isTypeReferenceNode,
   isStringLiteral,
+  PropertyDeclaration,
 } from "typescript";
 import { CGModuleNode } from "./module";
 import { CGCodeNode } from "./node";
@@ -10,7 +11,7 @@ import { CGUtils } from "./utils";
 
 export class CGPropertyNode extends CGCodeNode {
   constructor(
-    readonly propertySignature: PropertySignature,
+    readonly propertySignature: PropertySignature | PropertyDeclaration,
     readonly genericTypes: string[],
     readonly module: CGModuleNode
   ) {

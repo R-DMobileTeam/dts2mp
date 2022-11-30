@@ -20,7 +20,8 @@ class CGModuleNode extends node_1.CGCodeNode {
         const body = this.moduleDeclaration.body;
         if (body && (0, typescript_1.isModuleBlock)(body)) {
             body.forEachChild((childNode) => {
-                if ((0, typescript_1.isInterfaceDeclaration)(childNode)) {
+                if ((0, typescript_1.isInterfaceDeclaration)(childNode) ||
+                    (0, typescript_1.isClassDeclaration)(childNode)) {
                     const instance = new interface_1.CGInterfaceNode(childNode, this);
                     if (this.interfaceInstances[instance.nameOfNode()]) {
                         this.interfaceInstances[instance.nameOfNode()].merge(instance);

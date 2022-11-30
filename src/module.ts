@@ -1,4 +1,5 @@
 import {
+  isClassDeclaration,
   isFunctionDeclaration,
   isInterfaceDeclaration,
   isModuleBlock,
@@ -25,7 +26,10 @@ export class CGModuleNode extends CGCodeNode {
     const body = this.moduleDeclaration.body;
     if (body && isModuleBlock(body)) {
       body.forEachChild((childNode) => {
-        if (isInterfaceDeclaration(childNode)) {
+        if (
+          isInterfaceDeclaration(childNode) ||
+          isClassDeclaration(childNode)
+        ) {
           const instance = new CGInterfaceNode(childNode, this);
           if (this.interfaceInstances[instance.nameOfNode()]) {
             this.interfaceInstances[instance.nameOfNode()].merge(instance);

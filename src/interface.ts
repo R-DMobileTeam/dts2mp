@@ -1,8 +1,10 @@
 import {
+  ClassDeclaration,
   InterfaceDeclaration,
-  isHeritageClause,
   isIdentifier,
+  isMethodDeclaration,
   isMethodSignature,
+  isPropertyDeclaration,
   isPropertySignature,
 } from "typescript";
 import { CGMethodNode } from "./method";
@@ -17,7 +19,7 @@ export class CGInterfaceNode extends CGCodeNode {
   private extendsClass?: CGInterfaceNode;
 
   constructor(
-    readonly interfaceDeclaration: InterfaceDeclaration,
+    readonly interfaceDeclaration: InterfaceDeclaration | ClassDeclaration,
     readonly module: CGModuleNode
   ) {
     super();
@@ -51,11 +53,14 @@ export class CGInterfaceNode extends CGCodeNode {
           CGUtils.instanceName(it.name)
         );
       }
-      if (isPropertySignature(childNode)) {
+      if (isPropertySignature(childNode) || isPropertyDeclaration(childNode)) {
         this.properties.push(
           new CGPropertyNode(childNode, generics, this.module)
         );
-      } else if (isMethodSignature(childNode)) {
+      } else if (
+        isMethodSignature(childNode) ||
+        isMethodDeclaration(childNode)
+      ) {
         this.methods.push(new CGMethodNode(childNode, generics, this.module));
       }
     });

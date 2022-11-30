@@ -1,4 +1,8 @@
-import { isOptionalTypeNode, MethodSignature } from "typescript";
+import {
+  isOptionalTypeNode,
+  MethodDeclaration,
+  MethodSignature,
+} from "typescript";
 import { CGModuleNode } from "./module";
 import { CGCodeNode } from "./node";
 import { CGParameterNode } from "./param";
@@ -8,7 +12,7 @@ export class CGMethodNode extends CGCodeNode {
   parameters: CGParameterNode[] = [];
 
   constructor(
-    readonly methodSignature: MethodSignature,
+    readonly methodSignature: MethodSignature | MethodDeclaration,
     readonly genericTypes: string[],
     readonly module: CGModuleNode
   ) {
