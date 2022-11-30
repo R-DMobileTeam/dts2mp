@@ -30,6 +30,9 @@ class CGEnumNode extends node_1.CGCodeNode {
                 if ((0, typescript_1.isStringLiteral)(it.literal)) {
                     return it.literal.text;
                 }
+                else if ((0, typescript_1.isNumericLiteral)(it.literal)) {
+                    return "_" + it.literal.text;
+                }
             }
             return "$$noname$$";
         })
@@ -48,6 +51,9 @@ class CGEnumNode extends node_1.CGCodeNode {
             if ((0, typescript_1.isLiteralTypeNode)(it)) {
                 if ((0, typescript_1.isStringLiteral)(it.literal)) {
                     return `case ${this.nameOfNode()}.${it.literal.text}: return "${it.literal.text}";`;
+                }
+                else if ((0, typescript_1.isNumericLiteral)(it.literal)) {
+                    return `case ${this.nameOfNode()}._${it.literal.text}: return ${it.literal.text};`;
                 }
             }
         })

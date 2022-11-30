@@ -20,6 +20,17 @@ class CGInterfaceNode extends node_1.CGCodeNode {
         this.methods.push(...instance.methods);
     }
     process() {
+        if (this.interfaceDeclaration.heritageClauses) {
+            this.interfaceDeclaration.heritageClauses.forEach((it) => {
+                it.types.forEach((type) => {
+                    if ((0, typescript_1.isIdentifier)(type.expression)) {
+                        const extendsClassName = type.expression.text;
+                        this.extendsClass =
+                            this.module.interfaceInstances[extendsClassName];
+                    }
+                });
+            });
+        }
         this.interfaceDeclaration.forEachChild((childNode) => {
             let generics = [];
             if (this.interfaceDeclaration.typeParameters &&
@@ -47,21 +58,31 @@ class CGInterfaceNode extends node_1.CGCodeNode {
         return "";
     }
     code() {
+        var _a;
         const className = this.nameOfNode();
+        const allProperties = [];
+        allProperties.push(...this.properties);
+        if (this.extendsClass) {
+            allProperties.push(...this.extendsClass.properties);
+        }
+        const superProperties = (_a = this.extendsClass) === null || _a === void 0 ? void 0 : _a.properties;
         return `
-class ${className}${this.codeOfGeneric()} {
+class ${className}${this.codeOfGeneric()} ${this.extendsClass ? `extends ${this.extendsClass.nameOfNode()}` : ""} {
     
     mpjs.JsObject? $$context$$;
 
     ${this.properties.map((it) => it.codeOfVars()).join("\n")}
 
-    ${className}({this.$$context$$});
+    ${className}({this.$$context$$})${this.extendsClass ? ":super($$context$$:$$context$$)" : ""};
 
     ${this.properties.length > 0
             ? `
-    void setValues({${this.properties
+    void setValues({${allProperties
                 .map((it) => it.codeOfPlainSetter())
                 .join(",")}}) {
+        ${superProperties
+                ? `super.setValues(${superProperties.map((it) => `${it.nameOfProp()}:${it.nameOfProp()}`)});`
+                : ""}
           ${this.properties.map((it) => it.codeOfPlainSetterBlock()).join("\n")}
     }
     `
@@ -70,6 +91,7 @@ class ${className}${this.codeOfGeneric()} {
     Map toJson() {
         return {
             ${this.properties.map((it) => it.codeOfToJSON()).join(",\n")}
+            ${this.extendsClass ? `,...super.toJson()` : ""}
         }..removeWhere((key, value) => value == null);
     }
 

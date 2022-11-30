@@ -1,5 +1,7 @@
 import {
   InterfaceDeclaration,
+  isHeritageClause,
+  isIdentifier,
   isMethodSignature,
   isPropertySignature,
 } from "typescript";
@@ -12,6 +14,7 @@ import { CGUtils } from "./utils";
 export class CGInterfaceNode extends CGCodeNode {
   private properties: CGPropertyNode[] = [];
   private methods: CGMethodNode[] = [];
+  private extendsClass?: CGInterfaceNode;
 
   constructor(
     readonly interfaceDeclaration: InterfaceDeclaration,
@@ -27,6 +30,17 @@ export class CGInterfaceNode extends CGCodeNode {
   }
 
   private process() {
+    if (this.interfaceDeclaration.heritageClauses) {
+      this.interfaceDeclaration.heritageClauses.forEach((it) => {
+        it.types.forEach((type) => {
+          if (isIdentifier(type.expression)) {
+            const extendsClassName = type.expression.text;
+            this.extendsClass =
+              this.module.interfaceInstances[extendsClassName];
+          }
+        });
+      });
+    }
     this.interfaceDeclaration.forEachChild((childNode) => {
       let generics: string[] = [];
       if (
@@ -65,21 +79,38 @@ export class CGInterfaceNode extends CGCodeNode {
 
   code(): string {
     const className = this.nameOfNode();
+    const allProperties = [];
+    allProperties.push(...this.properties);
+    if (this.extendsClass) {
+      allProperties.push(...this.extendsClass.properties);
+    }
+    const superProperties = this.extendsClass?.properties;
     return `
-class ${className}${this.codeOfGeneric()} {
+class ${className}${this.codeOfGeneric()} ${
+      this.extendsClass ? `extends ${this.extendsClass.nameOfNode()}` : ""
+    } {
     
     mpjs.JsObject? $$context$$;
 
     ${this.properties.map((it) => it.codeOfVars()).join("\n")}
 
-    ${className}({this.$$context$$});
+    ${className}({this.$$context$$})${
+      this.extendsClass ? ":super($$context$$:$$context$$)" : ""
+    };
 
     ${
       this.properties.length > 0
         ? `
-    void setValues({${this.properties
+    void setValues({${allProperties
       .map((it) => it.codeOfPlainSetter())
       .join(",")}}) {
+        ${
+          superProperties
+            ? `super.setValues(${superProperties.map(
+                (it) => `${it.nameOfProp()}:${it.nameOfProp()}`
+              )});`
+            : ""
+        }
           ${this.properties.map((it) => it.codeOfPlainSetterBlock()).join("\n")}
     }
     `
@@ -89,6 +120,7 @@ class ${className}${this.codeOfGeneric()} {
     Map toJson() {
         return {
             ${this.properties.map((it) => it.codeOfToJSON()).join(",\n")}
+            ${this.extendsClass ? `,...super.toJson()` : ""}
         }..removeWhere((key, value) => value == null);
     }
 

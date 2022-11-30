@@ -1,5 +1,6 @@
 import {
   isLiteralTypeNode,
+  isNumericLiteral,
   isStringLiteral,
   isUnionTypeNode,
   TypeAliasDeclaration,
@@ -35,6 +36,8 @@ export class CGEnumNode extends CGCodeNode {
             if (isLiteralTypeNode(it)) {
               if (isStringLiteral(it.literal)) {
                 return it.literal.text;
+              } else if (isNumericLiteral(it.literal)) {
+                return "_" + it.literal.text;
               }
             }
             return "$$noname$$";
@@ -56,6 +59,10 @@ export class CGEnumNode extends CGCodeNode {
                         return `case ${this.nameOfNode()}.${
                           it.literal.text
                         }: return "${it.literal.text}";`;
+                      } else if (isNumericLiteral(it.literal)) {
+                        return `case ${this.nameOfNode()}._${
+                          it.literal.text
+                        }: return ${it.literal.text};`;
                       }
                     }
                   })

@@ -6,6 +6,7 @@ export declare class CGInterfaceNode extends CGCodeNode {
     readonly module: CGModuleNode;
     private properties;
     private methods;
+    private extendsClass?;
     constructor(interfaceDeclaration: InterfaceDeclaration, module: CGModuleNode);
     merge(instance: CGInterfaceNode): void;
     private process;

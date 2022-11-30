@@ -23,15 +23,14 @@ export class CGModuleNode extends CGCodeNode {
 
   private process() {
     const body = this.moduleDeclaration.body;
-    const interfaceCache: { [key: string]: CGInterfaceNode } = {};
     if (body && isModuleBlock(body)) {
       body.forEachChild((childNode) => {
         if (isInterfaceDeclaration(childNode)) {
           const instance = new CGInterfaceNode(childNode, this);
-          if (interfaceCache[instance.nameOfNode()]) {
-            interfaceCache[instance.nameOfNode()].merge(instance);
+          if (this.interfaceInstances[instance.nameOfNode()]) {
+            this.interfaceInstances[instance.nameOfNode()].merge(instance);
           } else {
-            interfaceCache[instance.nameOfNode()] = instance;
+            this.interfaceInstances[instance.nameOfNode()] = instance;
             this.codeNodes.push(instance);
           }
         } else if (isTypeAliasDeclaration(childNode)) {

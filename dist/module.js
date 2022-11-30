@@ -18,16 +18,15 @@ class CGModuleNode extends node_1.CGCodeNode {
     }
     process() {
         const body = this.moduleDeclaration.body;
-        const interfaceCache = {};
         if (body && (0, typescript_1.isModuleBlock)(body)) {
             body.forEachChild((childNode) => {
                 if ((0, typescript_1.isInterfaceDeclaration)(childNode)) {
                     const instance = new interface_1.CGInterfaceNode(childNode, this);
-                    if (interfaceCache[instance.nameOfNode()]) {
-                        interfaceCache[instance.nameOfNode()].merge(instance);
+                    if (this.interfaceInstances[instance.nameOfNode()]) {
+                        this.interfaceInstances[instance.nameOfNode()].merge(instance);
                     }
                     else {
-                        interfaceCache[instance.nameOfNode()] = instance;
+                        this.interfaceInstances[instance.nameOfNode()] = instance;
                         this.codeNodes.push(instance);
                     }
                 }
