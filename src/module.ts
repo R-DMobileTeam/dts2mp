@@ -15,6 +15,7 @@ import { CGTypeAliasNode } from "./type_alias";
 export class CGModuleNode extends CGCodeNode {
   public interfaceInstances: { [key: string]: CGInterfaceNode } = {};
   public enumInstances: { [key: string]: CGEnumNode } = {};
+  public typeAliasInstances: { [key: string]: CGTypeAliasNode } = {};
   public codeNodes: CGCodeNode[] = [];
 
   constructor(readonly moduleDeclaration: ModuleDeclaration) {
@@ -43,7 +44,9 @@ export class CGModuleNode extends CGCodeNode {
             this.enumInstances[instance.nameOfNode()] = instance;
             this.codeNodes.push(instance);
           } else {
-            this.codeNodes.push(new CGTypeAliasNode(childNode));
+            const instance = new CGTypeAliasNode(childNode);
+            this.typeAliasInstances[instance.nameOfNode()] = instance;
+            this.codeNodes.push(instance);
           }
         } else if (isFunctionDeclaration(childNode)) {
           this.codeNodes.push(new CGFunctionNode(childNode, this));

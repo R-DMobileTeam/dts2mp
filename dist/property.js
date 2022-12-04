@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CGPropertyNode = void 0;
 const typescript_1 = require("typescript");
 const node_1 = require("./node");
+const param_1 = require("./param");
 const utils_1 = require("./utils");
 class CGPropertyNode extends node_1.CGCodeNode {
     constructor(propertySignature, genericTypes, module) {
@@ -21,6 +22,29 @@ class CGPropertyNode extends node_1.CGCodeNode {
         }
         return ((_a = (this.propertySignature.type &&
             (0, typescript_1.isOptionalTypeNode)(this.propertySignature.type))) !== null && _a !== void 0 ? _a : false);
+    }
+    isFunctionType() {
+        if (this.propertySignature.type &&
+            (0, typescript_1.isFunctionTypeNode)(this.propertySignature.type)) {
+            return true;
+        }
+        const typeAliasNode = this.module.typeAliasInstances[this.codeDartType()];
+        if (typeAliasNode) {
+            return (0, typescript_1.isFunctionTypeNode)(typeAliasNode.typeAliasDeclaration.type);
+        }
+        return false;
+    }
+    functionTypeArgs() {
+        if (this.propertySignature.type &&
+            (0, typescript_1.isFunctionTypeNode)(this.propertySignature.type)) {
+            return this.propertySignature.type.parameters.map((it) => new param_1.CGParameterNode(it, [], this.module));
+        }
+        const typeAliasNode = this.module.typeAliasInstances[this.codeDartType()];
+        if (typeAliasNode &&
+            (0, typescript_1.isFunctionTypeNode)(typeAliasNode.typeAliasDeclaration.type)) {
+            return typeAliasNode.typeAliasDeclaration.type.parameters.map((it) => new param_1.CGParameterNode(it, [], this.module));
+        }
+        return [];
     }
     isClassType() {
         return this.module.interfaceInstances[this.codeDartType()] !== undefined;
@@ -67,6 +91,17 @@ class CGPropertyNode extends node_1.CGCodeNode {
         return `if (${this.nameOfProp()} != null) $${this.nameOfProp()} = ${this.nameOfProp()};`;
     }
     codeOfToJSON() {
+        if (this.isFunctionType()) {
+            return `'${this.nameOfNode()}': $${this.nameOfProp()} != null ? mpjs.JsFunction($${this.nameOfProp()}!, [${this.functionTypeArgs().map((it) => {
+                const interfaceInstance = this.module.interfaceInstances[utils_1.CGUtils.tsToDartType(it.parameter.type)];
+                if (interfaceInstance) {
+                    return `(e) => ${interfaceInstance.nameOfNode()}($$context$$: e)`;
+                }
+                else {
+                    return "null";
+                }
+            })}]): null`;
+        }
         return `'${this.nameOfNode()}': $${this.nameOfProp()}`;
     }
     codeOfDefaultValue() {

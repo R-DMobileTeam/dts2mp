@@ -13,6 +13,7 @@ class CGModuleNode extends node_1.CGCodeNode {
         this.moduleDeclaration = moduleDeclaration;
         this.interfaceInstances = {};
         this.enumInstances = {};
+        this.typeAliasInstances = {};
         this.codeNodes = [];
         this.process();
     }
@@ -38,7 +39,9 @@ class CGModuleNode extends node_1.CGCodeNode {
                         this.codeNodes.push(instance);
                     }
                     else {
-                        this.codeNodes.push(new type_alias_1.CGTypeAliasNode(childNode));
+                        const instance = new type_alias_1.CGTypeAliasNode(childNode);
+                        this.typeAliasInstances[instance.nameOfNode()] = instance;
+                        this.codeNodes.push(instance);
                     }
                 }
                 else if ((0, typescript_1.isFunctionDeclaration)(childNode)) {

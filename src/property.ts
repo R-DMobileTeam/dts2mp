@@ -4,9 +4,11 @@ import {
   isTypeReferenceNode,
   isStringLiteral,
   PropertyDeclaration,
+  isFunctionTypeNode,
 } from "typescript";
 import { CGModuleNode } from "./module";
 import { CGCodeNode } from "./node";
+import { CGParameterNode } from "./param";
 import { CGUtils } from "./utils";
 
 export class CGPropertyNode extends CGCodeNode {
@@ -30,6 +32,41 @@ export class CGPropertyNode extends CGCodeNode {
         isOptionalTypeNode(this.propertySignature.type)) ??
       false
     );
+  }
+
+  isFunctionType(): boolean {
+    if (
+      this.propertySignature.type &&
+      isFunctionTypeNode(this.propertySignature.type)
+    ) {
+      return true;
+    }
+    const typeAliasNode = this.module.typeAliasInstances[this.codeDartType()];
+    if (typeAliasNode) {
+      return isFunctionTypeNode(typeAliasNode.typeAliasDeclaration.type);
+    }
+    return false;
+  }
+
+  functionTypeArgs(): CGParameterNode[] {
+    if (
+      this.propertySignature.type &&
+      isFunctionTypeNode(this.propertySignature.type)
+    ) {
+      return this.propertySignature.type.parameters.map(
+        (it) => new CGParameterNode(it, [], this.module)
+      );
+    }
+    const typeAliasNode = this.module.typeAliasInstances[this.codeDartType()];
+    if (
+      typeAliasNode &&
+      isFunctionTypeNode(typeAliasNode.typeAliasDeclaration.type)
+    ) {
+      return typeAliasNode.typeAliasDeclaration.type.parameters.map(
+        (it) => new CGParameterNode(it, [], this.module)
+      );
+    }
+    return [];
   }
 
   isClassType(): boolean {
@@ -90,6 +127,21 @@ export class CGPropertyNode extends CGCodeNode {
   }
 
   codeOfToJSON(): string {
+    if (this.isFunctionType()) {
+      return `'${this.nameOfNode()}': $${this.nameOfProp()} != null ? mpjs.JsFunction($${this.nameOfProp()}!, [${this.functionTypeArgs().map(
+        (it) => {
+          const interfaceInstance =
+            this.module.interfaceInstances[
+              CGUtils.tsToDartType(it.parameter.type)
+            ];
+          if (interfaceInstance) {
+            return `(e) => ${interfaceInstance.nameOfNode()}($$context$$: e)`;
+          } else {
+            return "null";
+          }
+        }
+      )}]): null`;
+    }
     return `'${this.nameOfNode()}': $${this.nameOfProp()}`;
   }
 
