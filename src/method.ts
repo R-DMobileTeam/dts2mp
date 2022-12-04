@@ -1,5 +1,7 @@
 import {
+  isIdentifier,
   isOptionalTypeNode,
+  isTypeReferenceNode,
   MethodDeclaration,
   MethodSignature,
 } from "typescript";
@@ -74,7 +76,33 @@ export class CGMethodNode extends CGCodeNode {
     return this.methodSignature.type;
   }
 
+  returnConstructorType() {
+    const returnType = this.returnType();
+    if (
+      returnType &&
+      isTypeReferenceNode(returnType) &&
+      isIdentifier(returnType.typeName) &&
+      returnType.typeName.text === "Promise"
+    ) {
+      return returnType.typeArguments?.[0];
+    }
+    return this.returnType();
+  }
+
   isClassType(): boolean {
+    const returnType = this.returnType();
+    if (
+      returnType &&
+      isTypeReferenceNode(returnType) &&
+      isIdentifier(returnType.typeName) &&
+      returnType.typeName.text === "Promise"
+    ) {
+      return (
+        this.module.interfaceInstances[
+          CGUtils.tsToDartType(returnType.typeArguments?.[0])
+        ] !== undefined
+      );
+    }
     return (
       this.module.interfaceInstances[
         CGUtils.tsToDartType(this.returnType())
@@ -116,7 +144,7 @@ export class CGMethodNode extends CGCodeNode {
             this.isClassType()
               ? `
           return ${CGUtils.tsToDartType(
-            this.returnType()
+            this.returnConstructorType()
           )}($$context$$: result);
           `
               : `return result;`

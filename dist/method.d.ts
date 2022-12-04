@@ -14,6 +14,7 @@ export declare class CGMethodNode extends CGCodeNode {
     isOptionalReturnType(): boolean;
     codeOfReturnValue(): string;
     returnType(): import("typescript").TypeNode | undefined;
+    returnConstructorType(): import("typescript").TypeNode | undefined;
     isClassType(): boolean;
     code(): string;
 }

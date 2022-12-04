@@ -52,7 +52,26 @@ class CGMethodNode extends node_1.CGCodeNode {
     returnType() {
         return this.methodSignature.type;
     }
+    returnConstructorType() {
+        var _a;
+        const returnType = this.returnType();
+        if (returnType &&
+            (0, typescript_1.isTypeReferenceNode)(returnType) &&
+            (0, typescript_1.isIdentifier)(returnType.typeName) &&
+            returnType.typeName.text === "Promise") {
+            return (_a = returnType.typeArguments) === null || _a === void 0 ? void 0 : _a[0];
+        }
+        return this.returnType();
+    }
     isClassType() {
+        var _a;
+        const returnType = this.returnType();
+        if (returnType &&
+            (0, typescript_1.isTypeReferenceNode)(returnType) &&
+            (0, typescript_1.isIdentifier)(returnType.typeName) &&
+            returnType.typeName.text === "Promise") {
+            return (this.module.interfaceInstances[utils_1.CGUtils.tsToDartType((_a = returnType.typeArguments) === null || _a === void 0 ? void 0 : _a[0])] !== undefined);
+        }
         return (this.module.interfaceInstances[utils_1.CGUtils.tsToDartType(this.returnType())] !== undefined);
     }
     code() {
@@ -88,7 +107,7 @@ class CGMethodNode extends node_1.CGCodeNode {
             .join(",")}]);
           ${this.isClassType()
             ? `
-          return ${utils_1.CGUtils.tsToDartType(this.returnType())}($$context$$: result);
+          return ${utils_1.CGUtils.tsToDartType(this.returnConstructorType())}($$context$$: result);
           `
             : `return result;`}
         }
