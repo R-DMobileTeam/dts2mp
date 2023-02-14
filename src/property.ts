@@ -5,6 +5,7 @@ import {
   isStringLiteral,
   PropertyDeclaration,
   isFunctionTypeNode,
+  isArrayTypeNode,
 } from "typescript";
 import { CGModuleNode } from "./module";
 import { CGCodeNode } from "./node";
@@ -90,6 +91,35 @@ export class CGPropertyNode extends CGCodeNode {
   }
 
   codeOfVars(): string {
+    if (this.codeDartType().startsWith("List")) {
+      const node = this.propertySignature.type!;
+      if (isArrayTypeNode(node)) {
+        if (node.elementType) {
+          const elementName = CGUtils.tsToDartType(node.elementType);
+          const $isTypeReferenceNode =
+            node.elementType &&
+            isTypeReferenceNode(node.elementType) &&
+            this.genericTypes.indexOf(elementName) < 0;
+          if ($isTypeReferenceNode) {
+            return `${this.codeDartType()}${
+              this.isOptional() ? "?" : ""
+            } $${this.nameOfProp()}${
+              this.isOptional() ? "" : `= ${this.codeOfDefaultValue()}`
+            };
+                  
+                  Future<${this.codeDartType()}${
+              this.isOptional() ? "?" : ""
+            }> get ${this.nameOfProp()} async {
+                      ${(() => {
+                        return `return ((await $$context$$?.getPropertyValue('${this.nameOfNode()}')) as List).map((it) => ${elementName}($$context$$: it)).toList();`;
+                      })()}
+                    }
+                  `;
+          }
+        }
+      }
+    }
+
     const $isTypeReferenceNode =
       this.propertySignature.type &&
       isTypeReferenceNode(this.propertySignature.type) &&

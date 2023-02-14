@@ -63,6 +63,27 @@ class CGPropertyNode extends node_1.CGCodeNode {
         return utils_1.CGUtils.tsToDartType(this.propertySignature.type);
     }
     codeOfVars() {
+        if (this.codeDartType().startsWith("List")) {
+            const node = this.propertySignature.type;
+            if ((0, typescript_1.isArrayTypeNode)(node)) {
+                if (node.elementType) {
+                    const elementName = utils_1.CGUtils.tsToDartType(node.elementType);
+                    const $isTypeReferenceNode = node.elementType &&
+                        (0, typescript_1.isTypeReferenceNode)(node.elementType) &&
+                        this.genericTypes.indexOf(elementName) < 0;
+                    if ($isTypeReferenceNode) {
+                        return `${this.codeDartType()}${this.isOptional() ? "?" : ""} $${this.nameOfProp()}${this.isOptional() ? "" : `= ${this.codeOfDefaultValue()}`};
+                  
+                  Future<${this.codeDartType()}${this.isOptional() ? "?" : ""}> get ${this.nameOfProp()} async {
+                      ${(() => {
+                            return `return ((await $$context$$?.getPropertyValue('${this.nameOfNode()}')) as List).map((it) => ${elementName}($$context$$: it)).toList();`;
+                        })()}
+                    }
+                  `;
+                    }
+                }
+            }
+        }
         const $isTypeReferenceNode = this.propertySignature.type &&
             (0, typescript_1.isTypeReferenceNode)(this.propertySignature.type) &&
             this.genericTypes.indexOf(this.codeDartType()) < 0;
